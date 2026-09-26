@@ -7,6 +7,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -17,23 +19,20 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
+      - name: Add Android SDK tools to PATH
+        run: echo "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin" >> $GITHUB_PATH
+
       - name: Accept Android SDK licenses
         run: yes | sdkmanager --licenses || true
-        env:
-          ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
 
       - name: Install required SDK packages
         run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
-        env:
-          ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
 
       - name: Generate Gradle wrapper
         run: gradle wrapper --gradle-version 8.7
 
       - name: Build debug APK
         run: ./gradlew assembleDebug --no-daemon --stacktrace
-        env:
-          ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
