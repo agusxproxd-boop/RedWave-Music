@@ -23,7 +23,6 @@ class PlaybackService : MediaSessionService() {
             .build()
         player = ExoPlayer.Builder(this)
             .setAudioAttributes(audioAttributes, /* handleAudioFocus= */ true)
-            .setHandleAudioBecomingNoisyEnabled(true)
             .build()
         session = MediaSession.Builder(this, player).setCallback(object: MediaSession.Callback {}).build()
     }
