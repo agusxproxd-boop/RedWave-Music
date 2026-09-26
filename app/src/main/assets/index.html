@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#080808">
+<title>REDWAVE Music V4</title>
+<style>
+:root{--bg:#080808;--panel:#111;--panel2:#171717;--red:#e50914;--red2:#ff2633;--text:#fff;--muted:#a4a4a4;--line:#252525}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:linear-gradient(180deg,#090909,#050505);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;min-height:100vh}
+button,input{font:inherit}button{border:0;color:#fff;cursor:pointer}
+.app{max-width:720px;margin:auto;padding-bottom:110px}
+header{position:sticky;top:0;z-index:20;background:rgba(8,8,8,.94);backdrop-filter:blur(14px);padding:18px 16px 10px;border-bottom:1px solid var(--line)}
+.logo{font-size:24px;font-weight:900;letter-spacing:1px}.logo span{color:var(--red)}
+.sub{font-size:12px;color:var(--muted);margin-top:3px}
+.search{margin-top:13px;background:#151515;border:1px solid #292929;border-radius:14px;padding:12px 14px;width:100%;color:white;outline:none}
+.search:focus{border-color:var(--red)}
+.topActions{display:flex;gap:8px;margin-top:9px}
+.actionBtn{flex:1;background:var(--red);border:1px solid var(--red);color:#fff;border-radius:12px;padding:10px 9px;font-weight:750;font-size:13px}
+.actionBtn.secondary{background:#171717;border-color:#303030;color:#ddd}
+.tabs{display:flex;gap:7px;overflow:auto;padding:10px 12px;position:sticky;top:91px;z-index:15;background:rgba(8,8,8,.94);backdrop-filter:blur(12px)}
+.tabs button{white-space:nowrap;background:#151515;border:1px solid #272727;border-radius:20px;padding:8px 13px;color:#aaa;font-size:13px}
+.tabs button.active{background:var(--red);border-color:var(--red);color:#fff}
+.content{padding:8px 14px}
+.sectionTitle{display:flex;align-items:center;justify-content:space-between;margin:12px 2px}
+.sectionTitle h2{font-size:18px;margin:0}.count{color:var(--muted);font-size:12px}
+.song{display:flex;align-items:center;gap:12px;padding:9px 7px;border-radius:14px}
+.song:active{background:#151515}
+.cover{width:54px;height:54px;border-radius:10px;object-fit:cover;background:#202020;flex:none}
+.songInfo{min-width:0;flex:1}.title{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.meta{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:3px}
+.iconBtn{width:40px;height:40px;border-radius:50%;background:#181818;color:#ddd;font-size:17px}
+.iconBtn.red{background:var(--red);color:#fff}
+.empty{text-align:center;color:#888;padding:55px 20px}.empty b{color:#fff;display:block;margin-bottom:8px}
+.bottom{position:fixed;bottom:0;left:0;right:0;z-index:40;display:none;max-width:720px;margin:auto;background:rgba(12,12,12,.96);border-top:1px solid #292929;backdrop-filter:blur(18px);padding:9px 12px calc(9px + env(safe-area-inset-bottom))}
+.mini{display:flex;align-items:center;gap:10px}.mini .cover{width:46px;height:46px}.miniText{flex:1;min-width:0}.miniActions{display:flex;gap:6px}.miniActions button{width:38px;height:38px;border-radius:50%;background:#1c1c1c}.miniActions .play{background:var(--red)}
+.player{position:fixed;inset:0;z-index:60;background:radial-gradient(circle at 50% 15%,#301015 0,#0b0b0b 38%,#050505 80%);display:none;overflow:auto}
+.playerInner{max-width:720px;margin:auto;min-height:100%;padding:18px 22px 35px;display:flex;flex-direction:column}
+.playerTop{display:flex;justify-content:space-between;align-items:center}.playerTop button{background:#181818;width:42px;height:42px;border-radius:50%}
+.bigCover{width:min(82vw,430px);aspect-ratio:1;margin:34px auto 24px;border-radius:20px;object-fit:cover;background:#181818;box-shadow:0 20px 60px #000}
+.playerTitle{text-align:center;font-size:24px;font-weight:850;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.playerArtist{text-align:center;color:#aaa;margin-top:5px}
+.progress{margin:28px 0 8px}.progress input{width:100%;accent-color:var(--red)}
+.time{display:flex;justify-content:space-between;color:#888;font-size:11px}
+.controls{display:flex;align-items:center;justify-content:center;gap:18px;margin:20px 0}.controls button{background:#171717;width:48px;height:48px;border-radius:50%;font-size:18px}.controls .main{width:68px;height:68px;background:var(--red);font-size:25px}
+.modes{display:flex;justify-content:center;gap:12px}.modes button{background:#151515;color:#888;border-radius:18px;padding:7px 12px;font-size:12px}.modes button.on{color:#fff;background:#351014;border:1px solid #76202a}
+.sheet{position:fixed;inset:0;z-index:80;background:rgba(0,0,0,.68);display:none;align-items:flex-end}.sheetBox{background:#121212;border-radius:22px 22px 0 0;width:100%;max-width:720px;margin:auto;padding:20px 18px calc(22px + env(safe-area-inset-bottom));max-height:88vh;overflow:auto}.sheetBox h3{margin:0 0 15px}.field{margin:10px 0}.field label{display:block;font-size:12px;color:#aaa;margin-bottom:5px}.field input{width:100%;background:#1b1b1b;border:1px solid #303030;color:#fff;border-radius:10px;padding:11px;outline:none}.sheetBtns{display:flex;gap:9px;margin-top:15px}.sheetBtns button{flex:1;padding:12px;border-radius:12px;background:#242424}.sheetBtns .save{background:var(--red)}
+.toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:#222;color:white;padding:10px 15px;border-radius:20px;font-size:13px;z-index:100;display:none}
+.playlistRow,.albumRow{display:flex;align-items:center;gap:12px;padding:11px 8px;background:#121212;border-radius:13px;margin-bottom:8px}
+.circle{width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,#2b090d,#e50914);display:grid;place-items:center;font-weight:900}
+.small{font-size:12px;color:#888}
+@media(min-width:600px){.app{box-shadow:0 0 50px #000}.playerInner{padding-top:30px}}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+  <div class="logo">RED<span>WAVE</span> MUSIC</div>
+  <div class="sub">Tu música. Tu móvil. Sin anuncios.</div>
+  <input id="search" class="search" placeholder="Buscar canción, artista o álbum…">
+  <div class="topActions">
+    <button class="actionBtn" onclick="openImporter()">＋ Añadir canciones</button>
+    <button class="actionBtn secondary" onclick="scanNative()">⟳ Escanear móvil</button>
+  </div>
+</header>
+
+<nav class="tabs" id="tabs">
+  <button data-tab="all" class="active">Todas</button>
+  <button data-tab="downloads">Descargas</button>
+  <button data-tab="albums">Álbumes</button>
+  <button data-tab="playlists">Listas</button>
+  <button data-tab="favorites">♥ Favoritas</button>
+</nav>
+
+<main class="content" id="content"></main>
+</div>
+
+<div class="bottom" id="bottom">
+  <div class="mini">
+    <img id="miniCover" class="cover">
+    <div class="miniText"><div id="miniTitle" class="title">Nada reproduciéndose</div><div id="miniArtist" class="meta">REDWAVE Music</div></div>
+    <div class="miniActions">
+      <button onclick="previous()">⏮</button>
+      <button class="play" onclick="togglePlay()" id="miniPlay">▶</button>
+      <button onclick="next()">⏭</button>
+    </div>
+  </div>
+</div>
+
+<div class="player" id="player">
+ <div class="playerInner">
+  <div class="playerTop"><button onclick="closePlayer()">⌄</button><button onclick="editCurrent()">✎</button></div>
+  <img id="bigCover" class="bigCover">
+  <div id="bigTitle" class="playerTitle">Nada</div>
+  <div id="bigArtist" class="playerArtist">—</div>
+  <div class="progress"><input id="seek" type="range" min="0" max="100" value="0" step=".1" oninput="seekPreview(this.value)" onchange="seekTo(this.value)"></div>
+  <div class="time"><span id="curTime">0:00</span><span id="durTime">0:00</span></div>
+  <div class="controls">
+    <button onclick="previous()">⏮</button><button class="main" id="bigPlay" onclick="togglePlay()">▶</button><button onclick="next()">⏭</button>
+  </div>
+  <div class="modes"><button id="shuffleBtn" onclick="toggleShuffle()">🔀 Aleatorio</button><button id="repeatBtn" onclick="toggleRepeat()">🔁 Repetir</button></div>
+ </div>
+</div>
+
+<div class="sheet" id="editSheet" onclick="if(event.target===this)closeSheet()">
+ <div class="sheetBox">
+  <h3>Editar canción</h3>
+  <div class="field"><label>Título</label><input id="fTitle"></div>
+  <div class="field"><label>Artista</label><input id="fArtist"></div>
+  <div class="field"><label>Álbum</label><input id="fAlbum"></div>
+  <div class="field"><label>Portada</label><input id="fCover" type="file" accept="image/*"></div>
+  <div class="sheetBtns"><button onclick="closeSheet()">Cancelar</button><button class="save" onclick="saveEdit()">Guardar</button></div>
+ </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<input id="audioPicker" type="file" accept="audio/*" multiple hidden>
+
+<script>
+/*
+ REDWAVE MUSIC V3
+ ---------------------------------------------------------
+ HTML UI + bridge hooks for an APK wrapper.
+
+ If your APK builder exposes a JavaScript bridge, the app will
+ call window.RedwaveAndroid methods when available. A normal HTML-to-APK
+ WebView does NOT create these methods automatically.
+
+ Expected optional native methods:
+   scanMusic()
+   getMusic()
+   play(uri)
+   pause()
+   resume()
+   next()
+   previous()
+   setQueue(json)
+   setShuffle(boolean)
+   setRepeat(mode)
+   requestAudioPermission()
+   openFolder()
+   saveSongMetadata(json)
+
+ The HTML also works by itself with the normal browser file picker.
+*/
+const KEY='redwave_v3_library';
+const META='redwave_v3_meta';
+const LISTS='redwave_v3_playlists';
+
+let songs=[], meta={}, playlists={}, tab='all', current=null, audio=new Audio();
+let shuffle=false, repeat=false, queue=[], queueIndex=0, nativeMode=false;
+
+const $=id=>document.getElementById(id);
+const defaultCover='data:image/svg+xml;charset=UTF-8,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500"><rect width="500" height="500" fill="#171717"/><circle cx="250" cy="250" r="145" fill="#e50914"/><circle cx="250" cy="250" r="55" fill="#171717"/><circle cx="250" cy="250" r="16" fill="#e50914"/></svg>`);
+
+function load(){
+ try{songs=JSON.parse(localStorage.getItem(KEY)||'[]');meta=JSON.parse(localStorage.getItem(META)||'{}');playlists=JSON.parse(localStorage.getItem(LISTS)||'{}')}catch(e){}
+ render();
+}
+function save(){localStorage.setItem(KEY,JSON.stringify(songs));localStorage.setItem(META,JSON.stringify(meta));localStorage.setItem(LISTS,JSON.stringify(playlists))}
+function songData(s){
+ const m=meta[s.id]||{};
+ return {...s,...m,title:m.title||s.title||s.name||'Sin título',artist:m.artist||s.artist||'Desconocido',album:m.album||s.album||'Sin álbum',cover:m.cover||s.cover||defaultCover};
+}
+function format(t){if(!isFinite(t))return'0:00';t=Math.max(0,Math.floor(t));return Math.floor(t/60)+':'+String(t%60).padStart(2,'0')}
+function toast(x){$('toast').textContent=x;$('toast').style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>$('toast').style.display='none',1800)}
+
+function render(){
+ const q=$('search').value.trim().toLowerCase();
+ let list=songs.map(songData).filter(s=>(s.title+' '+s.artist+' '+s.album+' '+(s.path||'')).toLowerCase().includes(q));
+ if(tab==='favorites')list=list.filter(s=>meta[s.id]?.favorite);
+ if(tab==='downloads')list=list.filter(s=>(s.path||'').toLowerCase().includes('download')||(s.relativePath||'').toLowerCase().includes('download'));
+ if(tab==='albums')return renderAlbums(list);
+ if(tab==='playlists')return renderPlaylists();
+ $('content').innerHTML=`<div class="sectionTitle"><h2>${tab==='favorites'?'Favoritas':tab==='downloads'?'Descargas':'Mi música'}</h2><span class="count">${list.length} canciones</span></div>`+
+ (list.length?list.map(songHTML).join(''):`<div class="empty"><b>${songs.length?'No hay resultados':'Aún no hay canciones'}</b>${songs.length?'Prueba otra búsqueda.':'Pulsa "＋ Añadir canciones" para elegir tus MP3 desde el móvil. Si el creador ofrece un escaneo nativo de MediaStore, "⟳ Escanear móvil" lo usará.'}</div>`);
+}
+function songHTML(s){
+ return `<div class="song" onclick="playId('${esc(s.id)}')">
+  <img class="cover" src="${escAttr(s.cover)}" onerror="this.src=defaultCover">
+  <div class="songInfo"><div class="title">${esc(s.title)}</div><div class="meta">${esc(s.artist)} · ${esc(s.album)}</div></div>
+  <button class="iconBtn" onclick="event.stopPropagation();toggleFav('${esc(s.id)}')">${meta[s.id]?.favorite?'♥':'♡'}</button>
+  <button class="iconBtn" onclick="event.stopPropagation();editSong('${esc(s.id)}')">⋮</button>
+ </div>`;
+}
+function renderAlbums(list){
+ const groups={};list.forEach(s=>{let a=s.album||'Sin álbum';(groups[a]??=[]).push(s)});
+ $('content').innerHTML=`<div class="sectionTitle"><h2>Álbumes</h2><span class="count">${Object.keys(groups).length}</span></div>`+
+ (Object.keys(groups).length?Object.entries(groups).map(([a,ss])=>`<div class="albumRow" onclick="openAlbum(${JSON.stringify(a).replaceAll("'","&#39;")})"><div class="circle">♪</div><div><b>${esc(a)}</b><div class="small">${ss.length} canciones · ${esc(ss[0].artist)}</div></div></div>`).join(''):`<div class="empty"><b>No hay álbumes</b>Importa o escanea música para verlos aquí.</div>`);
+}
+function renderPlaylists(){
+ const names=Object.keys(playlists);
+ $('content').innerHTML=`<div class="sectionTitle"><h2>Listas de reproducción</h2><button class="iconBtn red" onclick="newPlaylist()">＋</button></div>`+
+ (names.length?names.map(n=>`<div class="playlistRow" onclick="openPlaylist(${JSON.stringify(n)})"><div class="circle">♫</div><div><b>${esc(n)}</b><div class="small">${playlists[n].length} canciones</div></div></div>`).join(''):`<div class="empty"><b>Crea tu primera lista</b>Guarda tus canciones en listas personalizadas.</div>`);
+}
+function openAlbum(a){tab='all';render();let list=songs.map(songData).filter(s=>s.album===a);$('content').innerHTML=`<div class="sectionTitle"><h2>${esc(a)}</h2><span class="count">${list.length}</span></div>${list.map(songHTML).join('')}`}
+function openPlaylist(n){let ids=playlists[n]||[];let list=ids.map(id=>songs.map(songData).find(s=>s.id===id)).filter(Boolean);$('content').innerHTML=`<div class="sectionTitle"><h2>${esc(n)}</h2><span class="count">${list.length}</span></div>${list.map(songHTML).join('')||'<div class="empty">Esta lista está vacía.</div>'}`}
+function newPlaylist(){let n=prompt('Nombre de la lista:');if(!n)return;playlists[n]=[];save();tab='playlists';render();toast('Lista creada')}
+function toggleFav(id){meta[id]??={};meta[id].favorite=!meta[id].favorite;save();render()}
+function editSong(id){current=songs.find(s=>s.id===id);if(!current)return;let d=songData(current);$('fTitle').value=d.title;$('fArtist').value=d.artist;$('fAlbum').value=d.album;$('fCover').value='';$('editSheet').style.display='flex';$('editSheet').dataset.id=id}
+function editCurrent(){if(current)editSong(current.id)}
+function closeSheet(){$('editSheet').style.display='none'}
+function saveEdit(){
+ let id=$('editSheet').dataset.id;if(!id)return;meta[id]??={};
+ meta[id].title=$('fTitle').value.trim()||'Sin título';meta[id].artist=$('fArtist').value.trim()||'Desconocido';meta[id].album=$('fAlbum').value.trim()||'Sin álbum';
+ let file=$('fCover').files[0];
+ if(file){let r=new FileReader();r.onload=()=>{meta[id].cover=r.result;save();closeSheet();render();updatePlayer();};r.readAsDataURL(file)}else{save();closeSheet();render();updatePlayer()}
+ toast('Guardado')
+}
+
+function playId(id){
+ let idx=songs.findIndex(s=>s.id===id);if(idx<0)return;
+ queue=songs.map(songData);queueIndex=idx;current=songs[idx];loadCurrent(true);
+}
+function loadCurrent(auto=true){
+ if(!current)return;let d=songData(current);
+ $('bottom').style.display='block';$('miniCover').src=d.cover;$('miniTitle').textContent=d.title;$('miniArtist').textContent=d.artist;
+ $('bigCover').src=d.cover;$('bigTitle').textContent=d.title;$('bigArtist').textContent=d.artist;
+ if(nativeMode && current.src){
+   if(auto) callNative('play', current.src);
+ }else if(current.src){
+   audio.src=current.src;if(auto)audio.play().catch(()=>{})
+ }
+ updateButtons(); 
+}
+function togglePlay(){
+ if(nativeMode&&window.RedwaveAndroid){
+   const playing=$('miniPlay').textContent==='Ⅱ';
+   callNative(playing?'pause':'resume');
+   return;
+ }
+ if(!audio.src)return;if(audio.paused)audio.play();else audio.pause();updateButtons()
+}
+function previous(){if(nativeMode&&window.RedwaveAndroid){callNative('previous');return} if(!queue.length)return;queueIndex=(queueIndex-1+queue.length)%queue.length;current=findById(queue[queueIndex].id);loadCurrent(true)}
+function next(){
+ if(nativeMode&&window.RedwaveAndroid){callNative('next');return}
+ if(!queue.length)return;
+ if(repeat){loadCurrent(true);return}
+ queueIndex=shuffle?Math.floor(Math.random()*queue.length):(queueIndex+1)%queue.length;
+ current=findById(queue[queueIndex].id);loadCurrent(true)
+}
+function findById(id){return songs.find(s=>s.id===id)||songs.find(s=>s.id==id)}
+function toggleShuffle(){shuffle=!shuffle;$('shuffleBtn').classList.toggle('on',shuffle);if(nativeMode)callNative('setShuffle',shuffle)}
+function toggleRepeat(){repeat=!repeat;$('repeatBtn').classList.toggle('on',repeat);if(nativeMode)callNative('setRepeat',repeat)}
+function seekPreview(v){if(audio.duration)$('curTime').textContent=format(audio.duration*v/100)}
+function seekTo(v){if(audio.duration)audio.currentTime=audio.duration*v/100}
+let nativeIsPlaying=false;
+function updateButtons(){let p=nativeMode?nativeIsPlaying:(!audio.paused&&!audio.ended);$('miniPlay').textContent=p?'Ⅱ':'▶';$('bigPlay').textContent=p?'Ⅱ':'▶'}
+function updatePlayer(){if(current){let d=songData(current);$('miniCover').src=d.cover;$('miniTitle').textContent=d.title;$('miniArtist').textContent=d.artist;$('bigCover').src=d.cover;$('bigTitle').textContent=d.title;$('bigArtist').textContent=d.artist}}
+function openPlayer(){if(!current){toast('Elige una canción');return}$('player').style.display='block';updatePlayer()}
+function closePlayer(){$('player').style.display='none'}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function escAttr(s){return esc(s)}
+function callNative(method,arg){
+ try{if(window.RedwaveAndroid&&typeof window.RedwaveAndroid[method]==='function')return window.RedwaveAndroid[method](arg===undefined?'':(typeof arg==='object'?JSON.stringify(arg):arg))}catch(e){console.warn(e)}
+}
+function openImporter(){
+  if(window.RedwaveAndroid && typeof window.RedwaveAndroid.openPicker==='function'){
+    callNative('openPicker');
+    return;
+  }
+  $('audioPicker').value='';
+  $('audioPicker').click();
+}
+function scanNative(){
+  if(window.RedwaveAndroid && typeof window.RedwaveAndroid.scanMusic==='function'){
+    nativeMode=true;
+    callNative('requestAudioPermission');
+    setTimeout(()=>callNative('scanMusic'),150);
+    toast('Buscando música del móvil…');
+  }else{
+    toast('Este creador no expone un escáner nativo. Usa "Añadir canciones".');
+  }
+}
+function importFiles(files){
+ [...files].filter(f=>f.type.startsWith('audio/')||/\.(mp3|m4a|aac|wav|flac|ogg|opus)$/i.test(f.name)).forEach(f=>{
+  let id='local_'+f.name+'_'+f.size+'_'+f.lastModified;
+  if(songs.some(s=>s.id===id))return;
+  songs.push({id,name:f.name,title:f.name.replace(/\.[^.]+$/,''),artist:'Desconocido',album:'Sin álbum',src:URL.createObjectURL(f),path:f.webkitRelativePath||f.name,relativePath:f.webkitRelativePath||f.name});
+ });
+ save();render();toast('Música añadida')
+}
+function nativeReceiveSongs(json){
+ try{let arr=typeof json==='string'?JSON.parse(json):json;
+  songs=arr.map(x=>({id:String(x.id??x.uri??x._id),name:x.name||x.title||'Sin título',title:x.title||x.name||'Sin título',artist:x.artist||'Desconocido',album:x.album||'Sin álbum',src:x.uri||x.src||'',path:x.path||x.relativePath||'',relativePath:x.relativePath||x.path||'',duration:x.duration||0,cover:x.cover||defaultCover}));
+  nativeMode=true;save();render();toast(`${songs.length} canciones encontradas`);
+ }catch(e){console.error(e)}
+}
+window.redwaveReceiveSongs=nativeR
