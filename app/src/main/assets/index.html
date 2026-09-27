@@ -251,7 +251,12 @@ function closePlayer(){$('player').style.display='none'}
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function escAttr(s){return esc(s)}
 function callNative(method,arg){
- try{if(window.RedwaveAndroid&&typeof window.RedwaveAndroid[method]==='function')return window.RedwaveAndroid[method](arg===undefined?'':(typeof arg==='object'?JSON.stringify(arg):arg))}catch(e){console.warn(e)}
+ try{
+   if(window.RedwaveAndroid&&typeof window.RedwaveAndroid[method]==='function'){
+     if(arg===undefined) return window.RedwaveAndroid[method]();
+     return window.RedwaveAndroid[method](typeof arg==='object'?JSON.stringify(arg):arg);
+   }
+ }catch(e){console.warn(e)}
 }
 function openImporter(){
   if(window.RedwaveAndroid && typeof window.RedwaveAndroid.openPicker==='function'){
