@@ -104,8 +104,8 @@ class MainActivity : AppCompatActivity() {
             val needed = permissions.filter { ContextCompat.checkSelfPermission(this@MainActivity, it) != PackageManager.PERMISSION_GRANTED }
             if (needed.isEmpty()) scanMusic() else runOnUiThread { permissionLauncher.launch(needed.toTypedArray()) }
         }
-        @JavascriptInterface fun scanMusic() { runOnUiThread { scanMusic() } }
-        @JavascriptInterface fun openPicker() { runOnUiThread { openPicker() } }
+        @JavascriptInterface fun scanMusic() { runOnUiThread { this@MainActivity.scanMusic() } }
+        @JavascriptInterface fun openPicker() { runOnUiThread { this@MainActivity.openPicker() } }
         @JavascriptInterface fun play(uri: String) { playUri(Uri.parse(uri)) }
         @JavascriptInterface fun pause() { startServiceCompat(Intent(this@MainActivity, PlaybackService::class.java).setAction(PlaybackService.ACTION_PAUSE)) }
         @JavascriptInterface fun resume() { startServiceCompat(Intent(this@MainActivity, PlaybackService::class.java).setAction(PlaybackService.ACTION_RESUME)) }
