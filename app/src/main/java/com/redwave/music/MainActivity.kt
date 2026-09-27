@@ -2,6 +2,7 @@ package com.redwave.music
 
 import android.Manifest
 import android.app.Activity
+import android.app.AlertDialog
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -9,8 +10,12 @@ import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
 import android.webkit.JavascriptInterface
+import android.webkit.JsPromptResult
+import android.webkit.JsResult
+import android.webkit.WebChromeClient
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import android.widget.EditText
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -53,17 +58,48 @@ class MainActivity : AppCompatActivity() {
         web.settings.domStorageEnabled = true
         web.settings.mediaPlaybackRequiresUserGesture = false
         web.webViewClient = WebViewClient()
+        web.webChromeClient = object : WebChromeClient() {
+            override fun onJsPrompt(view: WebView?, url: String?, message: String?, defaultValue: String?, result: JsPromptResult): Boolean {
+                val input = EditText(this@MainActivity)
+                input.setText(defaultValue ?: "")
+                AlertDialog.Builder(this@MainActivity)
+                    .setMessage(message)
+                    .setView(input)
+                    .setCancelable(false)
+                    .setPositiveButton("Aceptar") { _, _ -> result.confirm(input.text.toString()) }
+                    .setNegativeButton("Cancelar") { _, _ -> result.cancel() }
+                    .show()
+                return true
+            }
+            override fun onJsConfirm(view: WebView?, url: String?, message: String?, result: JsResult): Boolean {
+                AlertDialog.Builder(this@MainActivity)
+                    .setMessage(message)
+                    .setCancelable(false)
+                    .setPositiveButton("Aceptar") { _, _ -> result.confirm() }
+                    .setNegativeButton("Cancelar") { _, _ -> result.cancel() }
+                    .show()
+                return true
+            }
+            override fun onJsAlert(view: WebView?, url: String?, message: String?, result: JsResult): Boolean {
+                AlertDialog.Builder(this@MainActivity)
+                    .setMessage(message)
+                    .setCancelable(false)
+                    .setPositiveButton("OK") { _, _ -> result.confirm() }
+                    .show()
+                return true
+            }
+        }
         web.addJavascriptInterface(Bridge(), "RedwaveAndroid")
         web.loadUrl("file:///android_asset/index.html")
         setContentView(web)
         connectController()
-        if (intent?.action == Intent.ACTION_VIEW) intent.data?.let { playUri(it) }
+        if (intent?.action == Intent.ACTION_VIEW) intent.data?.let { playSingleUri(it) }
     }
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
-        if (intent.action == Intent.ACTION_VIEW) intent.data?.let { playUri(it) }
+        if (intent.action == Intent.ACTION_VIEW) intent.data?.let { playSingleUri(it) }
     }
 
     private fun connectController() {
@@ -76,6 +112,11 @@ class MainActivity : AppCompatActivity() {
                     override fun onIsPlayingChanged(isPlaying: Boolean) {
                         pushPlaybackState()
                         if (isPlaying) progressHandler.post(progressTick) else progressHandler.removeCallbacks(progressTick)
+                    }
+                    override fun onMediaItemTransition(mediaItem: androidx.media3.common.MediaItem?, reason: Int) {
+                        val idx = controller?.currentMediaItemIndex ?: 0
+                        web.post { web.evaluateJavascript("window.redwaveTrackChanged && window.redwaveTrackChanged($idx)", null) }
+                        pushPlaybackState()
                     }
                 })
             } catch (_: Exception) {}
@@ -106,13 +147,32 @@ class MainActivity : AppCompatActivity() {
         }
         @JavascriptInterface fun scanMusic() { runOnUiThread { this@MainActivity.scanMusic() } }
         @JavascriptInterface fun openPicker() { runOnUiThread { this@MainActivity.openPicker() } }
-        @JavascriptInterface fun play(uri: String) { playUri(Uri.parse(uri)) }
+        @JavascriptInterface fun playQueue(json: String) {
+            try {
+                val o = JSONObject(json)
+                val uris = o.getJSONArray("uris")
+                val index = o.optInt("index", 0)
+                startServiceCompat(Intent(this@MainActivity, PlaybackService::class.java).apply {
+                    action = PlaybackService.ACTION_PLAY_QUEUE
+                    putExtra(PlaybackService.EXTRA_URIS, uris.toString())
+                    putExtra(PlaybackService.EXTRA_INDEX, index)
+                })
+            } catch (_: Exception) {}
+        }
         @JavascriptInterface fun pause() { startServiceCompat(Intent(this@MainActivity, PlaybackService::class.java).setAction(PlaybackService.ACTION_PAUSE)) }
         @JavascriptInterface fun resume() { startServiceCompat(Intent(this@MainActivity, PlaybackService::class.java).setAction(PlaybackService.ACTION_RESUME)) }
         @JavascriptInterface fun next() { startServiceCompat(Intent(this@MainActivity, PlaybackService::class.java).setAction(PlaybackService.ACTION_NEXT)) }
         @JavascriptInterface fun previous() { startServiceCompat(Intent(this@MainActivity, PlaybackService::class.java).setAction(PlaybackService.ACTION_PREVIOUS)) }
-        @JavascriptInterface fun setShuffle(value: String) {}
-        @JavascriptInterface fun setRepeat(value: String) {}
+        @JavascriptInterface fun setShuffle(value: String) {
+            startServiceCompat(Intent(this@MainActivity, PlaybackService::class.java).apply {
+                action = PlaybackService.ACTION_SET_SHUFFLE; putExtra(PlaybackService.EXTRA_VALUE, value == "true")
+            })
+        }
+        @JavascriptInterface fun setRepeat(value: String) {
+            startServiceCompat(Intent(this@MainActivity, PlaybackService::class.java).apply {
+                action = PlaybackService.ACTION_SET_REPEAT; putExtra(PlaybackService.EXTRA_VALUE, value == "true")
+            })
+        }
     }
 
     private fun openPicker() {
@@ -122,9 +182,11 @@ class MainActivity : AppCompatActivity() {
         picker.launch(i)
     }
 
-    private fun playUri(uri: Uri) {
+    private fun playSingleUri(uri: Uri) {
         startServiceCompat(Intent(this, PlaybackService::class.java).apply {
-            action = PlaybackService.ACTION_PLAY; data = uri
+            action = PlaybackService.ACTION_PLAY_QUEUE
+            putExtra(PlaybackService.EXTRA_URIS, JSONArray().put(uri.toString()).toString())
+            putExtra(PlaybackService.EXTRA_INDEX, 0)
         })
     }
 
